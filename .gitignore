@@ -1,0 +1,5 @@
+/.vscode
+
+# Firmware build directory - ignore everything except .bin files
+firmware/build/*
+!firmware/build/*.bin
