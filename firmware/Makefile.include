@@ -1,11 +1,19 @@
 #######################################################
 
 # toolchain
-# Use Windows default location (which returns Unix paths that don't work with mingw32-make)
-CC := C:/Program Files/SDCC/bin/sdcc.exe
-OBJCOPY := C:/Program Files/SDCC/bin/sdobjcopy.exe
-PACK_HEX := C:/Program Files/SDCC/bin/packihx.exe
-WCHISP ?= wchisptool -g -f
+# Linux/Ubuntu paths (use 'which sdcc' to find your installation)
+# If running in Flatpak (VSCode), prepend flatpak-spawn --host
+FLATPAK := $(shell command -v flatpak-spawn 2>/dev/null)
+ifdef FLATPAK
+    SPAWN := flatpak-spawn --host
+else
+    SPAWN :=
+endif
+
+CC := $(SPAWN) sdcc
+OBJCOPY := $(SPAWN) sdobjcopy
+PACK_HEX := $(SPAWN) packihx
+WCHISP ?= $(SPAWN) wchisptool -g -f
 
 #######################################################
 
@@ -45,10 +53,10 @@ $(BUILD_DIR):
 # For now, get around this by stripping the paths off of the RELS list.
 
 $(BUILD_DIR)/$(TARGET).ihx: $(RELS) | $(BUILD_DIR)
-	cd "$(BUILD_DIR)" && "$(CC)" $(notdir $(RELS)) $(LFLAGS) -o $(TARGET).ihx
+	cd "$(BUILD_DIR)" && $(CC) $(notdir $(RELS)) $(LFLAGS) -o $(TARGET).ihx
 
 $(BUILD_DIR)/$(TARGET).hex: $(BUILD_DIR)/$(TARGET).ihx
-	"$(PACK_HEX)" $(BUILD_DIR)/$(TARGET).ihx > $(BUILD_DIR)/$(TARGET).hex
+	$(PACK_HEX) $(BUILD_DIR)/$(TARGET).ihx > $(BUILD_DIR)/$(TARGET).hex
 
 $(BUILD_DIR)/$(TARGET).bin: $(BUILD_DIR)/$(TARGET).ihx
 	$(OBJCOPY) -I ihex -O binary $(BUILD_DIR)/$(TARGET).ihx $(BUILD_DIR)/$(TARGET).bin
