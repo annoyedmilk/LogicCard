@@ -571,6 +571,25 @@ void fpga_enable()
     mDelaymS(10);  // Wait for FPGA to start configuration
 }
 
+// SPI Bus Control Functions
+// Shared SPI bus management between CH552 and FPGA
+void spi_bus_take_control()
+{
+    // Configure SPI pins as outputs (take control of bus)
+    // P1.5 = MOSI, P1.6 = MISO, P1.7 = SCK, P1.4 = CS
+    P1_MOD_OC = 0x00 | (1 << 6);  // Keep MISO as open-drain, others push-pull
+    P1_DIR_PU |= ((1 << CS_PIN) | (1 << 5) | (1 << 6) | (1 << 7));  // Set as outputs
+    CS = 1;  // Deselect flash initially
+}
+
+void spi_bus_release()
+{
+    // Release SPI bus - set SPI pins to high-impedance (tri-state)
+    // This allows FPGA to control the SPI flash
+    CS = 1;  // Deselect flash first
+    P1_DIR_PU &= ~((1 << CS_PIN) | (1 << 5) | (1 << 6) | (1 << 7));  // Set as inputs (high-Z)
+}
+
 void handle_command()
 {
     uint32_t i = 0;
@@ -653,9 +672,11 @@ void handle_command()
         slen = recv_buf_getc() | ((uint32_t)recv_buf_getc() << 8) | (((uint32_t)recv_buf_getc()) << 16);
         rlen = recv_buf_getc() | ((uint32_t)recv_buf_getc() << 8) | (((uint32_t)recv_buf_getc()) << 16);
 
-        // Reset FPGA before flash operation to allow MCU control of SPI bus
-        fpga_reset();
-        LED = 0; // Turn on LED during flash operation (active low)
+        // Reset FPGA and take control of SPI bus
+        fpga_reset();           // Hold FPGA in reset to prevent bus contention
+        mDelaymS(1);            // Wait for FPGA to enter reset state
+        spi_bus_take_control(); // Configure SPI pins as outputs
+        LED = 0;                // Turn on LED during flash operation (active low)
 
         CS = 0;
         if (slen > 0) {
@@ -702,10 +723,11 @@ void handle_command()
         }
         CS = 1;
 
-        // Enable FPGA after flash operation completes
-        // This allows FPGA to boot from the newly programmed flash
-        fpga_enable();
-        LED = 1; // Turn off LED after operation completes (active low)
+        // Release SPI bus and enable FPGA
+        spi_bus_release();  // Set SPI pins to high-Z before enabling FPGA
+        mDelaymS(1);        // Wait for signals to stabilize
+        fpga_enable();      // Release FPGA from reset - it will now control SPI bus
+        LED = 1;            // Turn off LED after operation completes (active low)
         break;
 
     default:
@@ -732,18 +754,21 @@ void main()
     P3_DIR_PU |= (1 << FPGA_EN_PIN);
     P3_MOD_OC &= ~(1 << FPGA_EN_PIN);
 
-    // Configure pin 1.0 as FPGA_RST control and SPI CS control (outputs)
-    P1_MOD_OC = 0x00 | (1 << 6);
+    // Configure pin 1.0 as FPGA_RST control (output initially)
+    // SPI pins will be configured on-demand by spi_bus_take_control()
+    P1_MOD_OC = 0x00;
     P1_DIR_PU = 0;
-    P1_DIR_PU |= ((1 << FPGA_RST_PIN) | (1 << CS_PIN) | (1 << 5) | (1 << 6) | (1 << 7));
+    P1_DIR_PU |= (1 << FPGA_RST_PIN);  // Only FPGA_RST as output initially
 
-    // Initialize FPGA in enabled state (normal operation)
-    FPGA_RST = 1;  // Release reset
-    FPGA_EN = 1;   // Enable FPGA
-
+    // Initialize SPI hardware (but pins remain in high-Z until needed)
     SPI0_SETUP = 0;                                                       //Master模式,高位在前
     SPI0_CTRL = 0x60;                                                     //模式0
     SPI0_CK_SE = 0x02;
+
+    // Initialize FPGA in enabled state with SPI bus released (normal operation)
+    spi_bus_release();  // SPI pins in high-Z, FPGA controls the bus
+    FPGA_RST = 1;       // Release reset
+    FPGA_EN = 1;        // Enable FPGA
 
     USBDeviceCfg();
     USBDeviceEndPointCfg();                                               // Endpoint configuration
