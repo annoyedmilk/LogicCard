@@ -746,6 +746,13 @@ void main()
     CfgFsys();
     mDelaymS(5);
 
+    // Configure for external 3.3V LDO
+    // When using external 3.3V power supply on VDD and V33 pins,
+    // the internal LDO must be disabled to avoid conflicts
+    SAFE_MOD = 0x55;
+    SAFE_MOD = 0xAA;
+    GLOBAL_CFG |= bLDO3V3_OFF;  // Disable internal LDO (bit 1 = 1)
+
     // Configure pin 3.2 as LED control
     P3_DIR_PU |= (1 << LED_PIN);
     P3_MOD_OC &= ~(1 << LED_PIN);
