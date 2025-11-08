@@ -210,20 +210,17 @@ flashrom -p serprog:dev=/dev/ttyUSB0 -E
 - [x] Schematic design completed
 - [x] Component selection and BOM finalized
 - [x] 3D model and render generated
-- [ ] PCB layout in progress (EasyEDA)
-- [ ] PCB layout review pending
-- [ ] Production files (Gerbers) pending
-- [ ] CH552 firmware development
-- [ ] FPGA example projects
-- [ ] Testing and validation
+- [x] PCB layout completed
+- [x] CH552 serprog firmware implemented
+- [x] FPGA example project (Charlieplexed LED matrix)
+- [ ] Hardware testing and validation
+- [ ] Documentation improvements
 
 ### Coming Soon
-- Complete PCB layout and design files
-- Gerber files for manufacturing
-- Assembly instructions
-- CH552 serprog firmware source code
-- FPGA example projects and tutorials
-- Detailed programming guide
+- Hardware testing results
+- Manufacturing and assembly guide
+- Additional FPGA example projects
+- Video tutorials and demonstrations
 
 ---
 
@@ -237,15 +234,14 @@ LogicCard/
 │   ├── 3D.step            # 3D model (STEP format)
 │   └── Render.png         # 3D render preview
 ├── firmware/              # Firmware source code
-│   └── ch552_serprog/     # CH552 serprog implementation (coming soon)
+│   └── ch552_serprog/     # CH552 serprog implementation
 ├── fpga/                  # FPGA design files
-│   ├── rtl/               # RTL source files (coming soon)
-│   └── constraints/       # Pin constraints (coming soon)
-├── docs/                  # Documentation and datasheets
-│   ├── CH552.PDF          # CH552 microcontroller datasheet
-│   ├── SLG47910.pdf       # SLG47910V FPGA datasheet
-│   └── W25Q80DV.pdf       # W25Q80 Flash memory datasheet
-└── examples/              # Example projects (coming soon)
+│   ├── LogicCard.ffpga    # Main FPGA project file
+│   └── main.v             # Verilog source for LED matrix demo
+└── docs/                  # Documentation and datasheets
+    ├── CH552.PDF          # CH552 microcontroller datasheet
+    ├── SLG47910.pdf       # SLG47910V FPGA datasheet
+    └── W25Q80DV.pdf       # W25Q80 Flash memory datasheet
 ```
 
 ---
@@ -260,7 +256,8 @@ LogicCard/
 
 ### 8.2 CH552 Firmware Update (First Time Setup)
 1. With BOOT button held, connect to computer
-2. Flash CH552 serprog firmware (instructions coming soon)
+2. Use WCHISPTool or chprog to flash the CH552 firmware
+3. See [firmware/ch552_serprog/](firmware/ch552_serprog/) for build instructions
 
 ### 8.3 Programming the FPGA
 1. Install flashrom tool: `sudo apt install flashrom` (Linux) or build from source
@@ -336,5 +333,5 @@ For questions, issues, or suggestions:
 - Check the [docs/](docs/) folder for datasheets and technical documentation
 - Review the schematic and BOM in the [hardware/](hardware/) folder
 
-**Last Updated:** 2025-11-03
-**Project Status:** Work In Progress - PCB Layout Phase
+**Last Updated:** 2025-11-08
+**Project Status:** Hardware Complete - Testing Phase
