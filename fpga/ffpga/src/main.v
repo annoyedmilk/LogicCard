@@ -1,13 +1,11 @@
-`timescale 1ns / 1ps
-
 // Simple Charlieplex LED Controller
 // Controls 105 LEDs using 11 GPIO pins
 // Lights one LED at a time in sequence
 
-(* top *) module top(
-    (* clkbuf_inhibit *) input i_clk,
-    input i_nreset,
-    output o_osc_ctrl_en,
+module top(
+    input OSC_CLK,              // Internal 50MHz oscillator clock output
+    input OSC_READY,            // Oscillator ready signal
+    output OSC_EN,              // Oscillator enable (set to 1)
 
     // 11 Data pins
     output reg CHARLIEPLEX_PIN_0,
@@ -37,19 +35,7 @@
 );
 
     // Enable the on-chip oscillator
-    assign o_osc_ctrl_en = 1'b1;
-
-    // Reset synchronizer
-    reg [2:0] r_rst = 3'b000;
-    wire w_reset;
-
-    always @(posedge i_clk) begin
-        r_rst[0] <= i_nreset;
-        r_rst[1] <= r_rst[0];
-        r_rst[2] <= ~r_rst[1];
-    end
-
-    assign w_reset = r_rst[2];
+    assign OSC_EN = 1'b1;
 
     // Counter to slow down the LED sequence
     // 25-bit counter at 50MHz = ~0.67 second per LED
@@ -66,8 +52,9 @@
             CHARLIEPLEX_OE_1,  CHARLIEPLEX_OE_0} = oe_pins;
 
     // Main counter - increments every clock
-    always @(posedge i_clk) begin
-        if (w_reset) begin
+    // Wait for oscillator to be ready before starting
+    always @(posedge OSC_CLK) begin
+        if (!OSC_READY) begin
             slow_counter <= 25'd0;
             current_led <= 7'd0;
         end else begin
@@ -85,7 +72,7 @@
 
     // LED control logic
     // For each LED, set the appropriate pins HIGH/LOW/Hi-Z
-    always @(posedge i_clk) begin
+    always @(posedge OSC_CLK) begin
         // Default: all pins to high-Z (disabled) and LOW
         oe_pins <= 11'b0;
 
