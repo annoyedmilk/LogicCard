@@ -3,4 +3,10 @@
 # Firmware build directory - ignore everything except .bin files
 firmware/build/*
 !firmware/build/*.bin
-/fpga
+
+# FPGA build directory - ignore everything except bitstream files
+/fpga/ffpga/build/*
+!/fpga/ffpga/build/bitstream/
+/fpga/ffpga/build/bitstream/*
+!/fpga/ffpga/build/bitstream/*.bin
+!/fpga/ffpga/build/bitstream/*.txt
