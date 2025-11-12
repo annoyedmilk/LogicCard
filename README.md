@@ -3,7 +3,7 @@
 ![Status: Work In Progress](https://img.shields.io/badge/Status-Work%20In%20Progress-yellow)
 ![License](https://img.shields.io/badge/License-CERN--OHL--W-blue)
 
-> **Note:** This project is currently under active development. Hardware layout is being finalized in EasyEDA. PCB design files, Gerbers, and production-ready files will be uploaded once the layout is complete.
+> **Note:** This project is currently under active development. PCB layout is complete and the focus is now on firmware development and generating example FPGA bitstreams.
 
 ## Project Overview
 
@@ -164,10 +164,11 @@ Actual usage: 105 LEDs (15 rows × 7 columns)
 
 ### 4.2 Current Limiting
 
-Each Charlieplex pin should have a series resistor (180Ω) for current limiting:
+Each Charlieplex pin should have a series resistor (82Ω) for current limiting:
 - Forward voltage (VF): ~2.0V (yellow LEDs)
-- Forward current (IF): ~5 mA for visibility
+- Forward current (IF): ~10 mA for visibility
 - These resistors can be desoldered to use test points for external applications
+- As one GPIO drives the anode and another the cathode, the total resistance is 2 × 82Ω = 164Ω
 
 ---
 
@@ -193,7 +194,7 @@ The CH552 firmware implements the serprog protocol for flashrom compatibility:
 
 ```bash
 # Flash FPGA bitstream using flashrom
-flashrom -p serprog:dev=/dev/ttyUSB0 -w fpga_bitstream.bin
+flashrom -p serprog:dev=/dev/ttyUSB0 -w FPGA_bitstream_FLASH_MEM.bin
 
 # Read current configuration
 flashrom -p serprog:dev=/dev/ttyUSB0 -r current_config.bin
@@ -218,9 +219,8 @@ flashrom -p serprog:dev=/dev/ttyUSB0 -E
 
 ### Coming Soon
 - Hardware testing results
-- Manufacturing and assembly guide
 - Additional FPGA example projects
-- Video tutorials and demonstrations
+- Demonstrations
 
 ---
 
@@ -233,11 +233,15 @@ LogicCard/
 │   ├── Schematic.pdf      # Circuit schematic
 │   ├── 3D.step            # 3D model (STEP format)
 │   └── Render.png         # 3D render preview
-├── firmware/              # Firmware source code
-│   └── ch552_serprog/     # CH552 serprog implementation
+├── firmware/              # CH552 firmware source code
+│   ├── ch552_serprog/     # serprog protocol implementation
+│   └── build/             # Compiled firmware binaries
 ├── fpga/                  # FPGA design files
 │   ├── LogicCard.ffpga    # Main FPGA project file
-│   └── main.v             # Verilog source for LED matrix demo
+│   └── ffpga/             # FFPGA build artifacts
+│       ├── src/           # Verilog source files
+│       └── build/         # Build output directory
+│           └── bitstream/ # Generated bitstreams (.bin and .txt)
 └── docs/                  # Documentation and datasheets
     ├── CH552.PDF          # CH552 microcontroller datasheet
     ├── SLG47910.pdf       # SLG47910V FPGA datasheet
@@ -263,7 +267,7 @@ LogicCard/
 1. Install flashrom tool: `sudo apt install flashrom` (Linux) or build from source
 2. Build your FPGA design using Renesas GoConfigure tool
 3. Generate bitstream file (.bin)
-4. Flash using: `flashrom -p serprog:dev=/dev/ttyUSB0 -w bitstream.bin`
+4. Flash using: `flashrom -p serprog:dev=/dev/ttyUSB0 -w FPGA_bitstream_FLASH_MEM.bin`
 5. FPGA automatically configures and runs
 
 ---
@@ -293,7 +297,6 @@ This is an open-source hardware project. Contributions, suggestions, and feedbac
 ### How to Contribute
 - Report issues or suggest features via GitHub Issues
 - Submit pull requests for improvements
-- Share your FPGA projects and examples
 - Help improve documentation
 
 ---
@@ -333,5 +336,5 @@ For questions, issues, or suggestions:
 - Check the [docs/](docs/) folder for datasheets and technical documentation
 - Review the schematic and BOM in the [hardware/](hardware/) folder
 
-**Last Updated:** 2025-11-08
-**Project Status:** Hardware Complete - Testing Phase
+**Last Updated:** 2025-11-12
+**Project Status:** Hardware Complete - Firmware and RTL Development Phase
