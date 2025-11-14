@@ -1,8 +1,11 @@
-// Simple Blinking LED with Cathode Control
-// Proper two-pin LED control for Charlieplex configuration
+// ================================================================
+//  DEMO: Simple Blinking LED
+//  Proper two-pin LED control for Charlieplex configuration
+// ================================================================
+
 (* top *)
 module DemoSimpleBlinking #(
-    parameter IN_CLK_HZ = 50000000,  // 50MHz
+    parameter IN_CLK_HZ = 50000000,  // 50MHz input clock
     parameter BLINK_HZ = 2           // 2Hz = blink twice per second
 ) (
     (* iopad_external_pin *)
@@ -12,42 +15,45 @@ module DemoSimpleBlinking #(
     (* iopad_external_pin *)
     output osc_en,
     
-    // LED1 Anode (HIGH when LED is on)
+    // LED1 control pins
     (* iopad_external_pin *)
-    output led1_anode_oe,
+    output led1_anode_oe,      // Anode output enable
     (* iopad_external_pin *)
-    output led1_anode,
+    output led1_anode,         // Anode signal (HIGH = LED on)
     
-    // LED1 Cathode (LOW when LED is on)
     (* iopad_external_pin *)
-    output led1_cathode_oe,
+    output led1_cathode_oe,    // Cathode output enable
     (* iopad_external_pin *)
-    output led1_cathode
+    output led1_cathode        // Cathode signal (LOW = LED on)
 );
 
-    // OSC config
+    // Enable oscillator
     assign osc_en = 1'b1;
     
-    // Output Enable for both anode and cathode
-    assign led1_anode_oe = 1'b1;   // Enable anode output
-    assign led1_cathode_oe = 1'b1;  // Enable cathode output
+    // Enable both anode and cathode outputs
+    assign led1_anode_oe = 1'b1;
+    assign led1_cathode_oe = 1'b1;
     
-    // Cathode is always LOW (ground)
+    // Cathode held at ground (common for single LED)
     assign led1_cathode = 1'b0;
     
-    // Simple blinker
+    // Instantiate blinker for anode control
     blinker #(
         .IN_CLK_HZ(IN_CLK_HZ),
         .BLINK_HZ(BLINK_HZ)
     ) blinker_led1 (
         .clk(clk),
         .nreset(nreset),
-        .out(led1_anode)  // Connect to anode
+        .out(led1_anode)
     );
 
 endmodule
 
-// Simple Blinker module
+
+// ================================================================
+//  Blinker Module
+//  Toggles output at specified frequency
+// ================================================================
 module blinker #(
     parameter IN_CLK_HZ = 50000000,
     parameter BLINK_HZ = 2
@@ -57,20 +63,22 @@ module blinker #(
     output reg out
 );
 
-    // Calculate counter width for desired blink frequency
+    // Calculate counter max for desired blink frequency
     localparam CNT_MAX = IN_CLK_HZ / (2 * BLINK_HZ) - 1;
     localparam CNT_WIDTH = $clog2(CNT_MAX + 1);
     
     reg [CNT_WIDTH-1:0] counter;
     
+    // Toggle logic
     always @(posedge clk) begin
         if (!nreset) begin
             counter <= 0;
             out <= 0;
         end else begin
+            // Count up to CNT_MAX, then toggle output
             if (counter >= CNT_MAX) begin
                 counter <= 0;
-                out <= ~out;  // Toggle LED state
+                out <= ~out;
             end else begin
                 counter <= counter + 1;
             end

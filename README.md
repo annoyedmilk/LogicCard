@@ -1,9 +1,7 @@
 # LogicCard
 
-![Status: Work In Progress](https://img.shields.io/badge/Status-Work%20In%20Progress-yellow)
+![Status: Ready](https://img.shields.io/badge/Status-Ready%20to%20Use-brightgreen)
 ![License](https://img.shields.io/badge/License-CERN--OHL--W-blue)
-
-> **Note:** This project is currently under active development. PCB layout is complete and the focus is now on firmware development and generating example FPGA bitstreams.
 
 ## Project Overview
 
@@ -165,7 +163,7 @@ Actual usage: 105 LEDs (15 rows × 7 columns)
 ### 4.2 Current Limiting
 
 Each Charlieplex pin should have a series resistor (82Ω) for current limiting:
-- Forward voltage (VF): ~2.0V (yellow LEDs)
+- Forward voltage (VF): ~1.8V (yellow LEDs)
 - Forward current (IF): ~10 mA for visibility
 - These resistors can be desoldered to use test points for external applications
 - As one GPIO drives the anode and another the cathode, the total resistance is 2 × 82Ω = 164Ω
@@ -179,7 +177,6 @@ Each Charlieplex pin should have a series resistor (82Ω) for current limiting:
 The CH552 firmware implements the serprog protocol for flashrom compatibility:
 
 **Supported Features:**
-- USB 2.0 Full Speed (12 Mbps)
 - SPI Master interface
 - FPGA reset/enable control with bus arbitration
 - Visual LED feedback during programming operations
@@ -213,22 +210,26 @@ flashrom -p serprog:dev=/dev/ttyACM0 -E
 
 ---
 
-## 6. Project Status & Roadmap
+## 6. Available FPGA Examples
 
-### Current Status
-- [x] Schematic design completed
-- [x] Component selection and BOM finalized
-- [x] 3D model and render generated
-- [x] PCB layout completed
-- [x] CH552 serprog firmware implemented
-- [x] FPGA example project (Charlieplexed LED matrix)
-- [ ] Hardware testing and validation
-- [ ] Documentation improvements
+The project includes two ready-to-use FPGA bitstreams:
 
-### Coming Soon
-- Hardware testing results
-- Additional FPGA example projects
-- Demonstrations
+### 6.1 Blink Example
+- **Location**: [examples/blink.ffpga](examples/blink.ffpga)
+- **Description**: Simple LED blinking demo using Charlieplex configuration
+- **Features**: Single LED blinking at 2Hz using 2 GPIO pins
+- **Bitstream**: [examples/ffpga/build/bitstream/FPGA_bitstream_FLASH_MEM_1MB.bin](examples/ffpga/build/bitstream/FPGA_bitstream_FLASH_MEM_1MB.bin)
+
+### 6.2 Demo Project
+- **Location**: [fpga/demo.ffpga](fpga/demo.ffpga)
+- **Description**: Full 15×7 LED matrix with ripple effect animation
+- **Features**:
+  - 105-LED Charlieplexed matrix (15 rows × 7 columns)
+  - Button controls for pattern inversion, speed control, and pause/play
+  - Uses all 11 Charlieplex GPIO pins
+- **Bitstream**: [fpga/ffpga/build/bitstream/FPGA_bitstream_FLASH_MEM_1MB.bin](fpga/ffpga/build/bitstream/FPGA_bitstream_FLASH_MEM_1MB.bin)
+
+![LogicCard Demo Animation](docs/LogicCard.gif)
 
 ---
 
@@ -244,45 +245,105 @@ LogicCard/
 ├── firmware/              # CH552 firmware source code
 │   ├── ch552_serprog/     # serprog protocol implementation
 │   └── build/             # Compiled firmware binaries
-├── fpga/                  # FPGA design files
-│   ├── LogicCard.ffpga    # Main FPGA project file
+│       └── ch552-serprog.bin
+├── fpga/                  # FPGA design files (Demo project)
+│   ├── demo.ffpga         # Demo FPGA project file
 │   └── ffpga/             # FFPGA build artifacts
 │       ├── src/           # Verilog source files
+│       │   └── demo.v     # LED matrix demo with ripple effect
 │       └── build/         # Build output directory
-│           └── bitstream/ # Generated bitstreams (.bin and .txt)
+│           └── bitstream/ # Generated bitstreams
+│               ├── FPGA_bitstream_FLASH_MEM.bin (48KB)
+│               └── FPGA_bitstream_FLASH_MEM_1MB.bin (1MB padded)
+├── examples/              # Example FPGA projects
+│   ├── blink.ffpga        # Blink example project file
+│   └── ffpga/             # FFPGA build artifacts
+│       ├── src/           # Verilog source files
+│       │   └── blink.v    # Simple LED blink demo
+│       └── build/         # Build output directory
+│           └── bitstream/ # Generated bitstreams
+│               ├── FPGA_bitstream_FLASH_MEM.bin (48KB)
+│               └── FPGA_bitstream_FLASH_MEM_1MB.bin (1MB padded)
 └── docs/                  # Documentation and datasheets
     ├── CH552.PDF          # CH552 microcontroller datasheet
     ├── SLG47910.pdf       # SLG47910V FPGA datasheet
-    └── W25Q80DV.pdf       # W25Q80 Flash memory datasheet
+    ├── W25Q80DV.pdf       # W25Q80 Flash memory datasheet
+    └── LogicCard.gif      # Demo animation
 ```
 
 ---
 
 ## 8. Quick Start Guide
 
-> **Note:** This guide will be updated once the hardware is manufactured and firmware is finalized.
-
 ### 8.1 Hardware Setup
 1. Connect LogicCard to computer via USB-C cable
-2. Hold the BOOT button to enter CH552 Bootloader Mode (for initial firmware setup)
+2. The board should enumerate as a USB device
 
 ### 8.2 CH552 Firmware Update (First Time Setup)
-1. With BOOT button held, connect to computer
-2. Use WCHISPTool or chprog to flash the CH552 firmware
-3. See [firmware/ch552_serprog/](firmware/ch552_serprog/) for build instructions
+
+The CH552 microcontroller needs to be programmed with the serprog firmware on first use.
+
+#### Installing wchisp (Recommended for Linux)
+
+```bash
+# Install from cargo (Rust package manager)
+cargo install wchisp
+
+# Set udev rules for non-root access
+sudo tee /etc/udev/rules.d/50-wchisp.rules > /dev/null <<EOF
+SUBSYSTEM=="usb", ATTRS{idVendor}=="4348", ATTRS{idProduct}=="55e0", MODE="0666"
+EOF
+sudo udevadm control --reload-rules
+```
+
+**Arch Linux:**
+```bash
+yay -S wchisp
+```
+
+#### Flashing CH552 Firmware
+
+1. Hold the BOOT button and connect the board to your computer
+2. Flash the firmware:
+   ```bash
+   wchisp flash firmware/build/ch552-serprog.bin
+   ```
+3. Disconnect and reconnect the board (without holding BOOT)
+4. The board should now appear as `/dev/ttyACM0`
+
+For more details on wchisp, see the [official repository](https://github.com/ch32-rs/wchisp).
 
 ### 8.3 Programming the FPGA
-1. Install flashrom tool: `sudo apt install flashrom` (Linux) or build from source
-2. Build your FPGA design using Renesas GoConfigure tool
-3. Generate bitstream file (.bin)
-4. **Pad the bitstream to 1MB** (flashrom requires full chip-size images):
+
+#### Try the Pre-built Examples
+
+1. Install flashrom:
+   ```bash
+   sudo apt install flashrom
+   ```
+
+2. Flash one of the ready-to-use examples:
+   ```bash
+   # Blink example
+   flashrom -p serprog:dev=/dev/ttyACM0 -w examples/ffpga/build/bitstream/FPGA_bitstream_FLASH_MEM_1MB.bin
+
+   # Or the full LED matrix demo
+   flashrom -p serprog:dev=/dev/ttyACM0 -w fpga/ffpga/build/bitstream/FPGA_bitstream_FLASH_MEM_1MB.bin
+   ```
+
+3. The FPGA automatically configures and runs after programming
+
+#### Build Your Own FPGA Design
+
+1. Create your design using Renesas GoConfigure tool
+2. Generate bitstream file (`.bin`)
+3. **Pad the bitstream to 1MB** (flashrom requires full chip-size images):
    ```bash
    # Pad bitstream to match W25Q80 flash size (1MB)
    cp FPGA_bitstream_FLASH_MEM.bin FPGA_bitstream_FLASH_MEM_1MB.bin
    truncate -s 1M FPGA_bitstream_FLASH_MEM_1MB.bin
    ```
-5. Flash using: `flashrom -p serprog:dev=/dev/ttyACM0 -w FPGA_bitstream_FLASH_MEM_1MB.bin`
-6. FPGA automatically configures and runs
+4. Flash using: `flashrom -p serprog:dev=/dev/ttyACM0 -w FPGA_bitstream_FLASH_MEM_1MB.bin`
 
 **Note:** The FPGA only uses the first 48KB (384 kbit) of the flash for configuration. The W25Q80 flash chip is 1MB (1,048,576 bytes), so flashrom requires the image to be padded to the full chip size.
 
