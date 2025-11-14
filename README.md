@@ -404,6 +404,7 @@ This project is licensed under the **CERN Open Hardware Licence Version 2 - Weak
 
 - **Renesas** for providing SLG47910V FPGA samples and development tools
 - **ieiao** for the [CH552 serprog implementation](https://github.com/ieiao/ch554_sdcc)
+- **ch32-rs team** for the [wchisp tool](https://github.com/ch32-rs/wchisp)
 - The open-source hardware and FPGA community
 
 ## 14. Contact & Support
@@ -412,6 +413,3 @@ For questions, issues, or suggestions:
 - Open an issue on GitHub
 - Check the [docs/](docs/) folder for datasheets and technical documentation
 - Review the schematic and BOM in the [hardware/](hardware/) folder
-
-**Last Updated:** 2025-11-12
-**Project Status:** Hardware Complete - Firmware and RTL Development Phase
