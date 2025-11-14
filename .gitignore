@@ -10,3 +10,4 @@ firmware/build/*
 /fpga/ffpga/build/bitstream/*
 !/fpga/ffpga/build/bitstream/*.bin
 !/fpga/ffpga/build/bitstream/*.txt
+/examples/ffpga/build
