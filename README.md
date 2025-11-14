@@ -275,8 +275,16 @@ LogicCard/
 1. Install flashrom tool: `sudo apt install flashrom` (Linux) or build from source
 2. Build your FPGA design using Renesas GoConfigure tool
 3. Generate bitstream file (.bin)
-4. Flash using: `flashrom -p serprog:dev=/dev/ttyUSB0 -w FPGA_bitstream_FLASH_MEM.bin`
-5. FPGA automatically configures and runs
+4. **Pad the bitstream to 1MB** (flashrom requires full chip-size images):
+   ```bash
+   # Pad bitstream to match W25Q80 flash size (1MB)
+   cp FPGA_bitstream_FLASH_MEM.bin FPGA_bitstream_FLASH_MEM_1MB.bin
+   truncate -s 1M FPGA_bitstream_FLASH_MEM_1MB.bin
+   ```
+5. Flash using: `flashrom -p serprog:dev=/dev/ttyACM0 -w FPGA_bitstream_FLASH_MEM_1MB.bin`
+6. FPGA automatically configures and runs
+
+**Note:** The FPGA only uses the first 48KB (384 kbit) of the flash for configuration. The W25Q80 flash chip is 1MB (1,048,576 bytes), so flashrom requires the image to be padded to the full chip size.
 
 ---
 
