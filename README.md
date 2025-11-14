@@ -181,7 +181,8 @@ The CH552 firmware implements the serprog protocol for flashrom compatibility:
 **Supported Features:**
 - USB 2.0 Full Speed (12 Mbps)
 - SPI Master interface
-- FPGA reset control
+- FPGA reset/enable control with bus arbitration
+- Visual LED feedback during programming operations
 - Compatible with standard flashrom tool
 
 **USB Identifiers:**
@@ -190,17 +191,24 @@ The CH552 firmware implements the serprog protocol for flashrom compatibility:
 - Device Class: CDC
 - Product String: "ch552-serprog"
 
+**LED Behavior:**
+- **On** during power-up and USB enumeration
+- **Blinks** during USB configuration
+- **Off** when idle and ready for commands
+- **On** during flash programming operations (CH552 controls SPI bus)
+- **Off** when FPGA is enabled (FPGA controls SPI bus)
+
 ### 5.2 Programming Commands
 
 ```bash
 # Flash FPGA bitstream using flashrom
-flashrom -p serprog:dev=/dev/ttyUSB0 -w FPGA_bitstream_FLASH_MEM.bin
+flashrom -p serprog:dev=/dev/ttyACM0 -w FPGA_bitstream_FLASH_MEM.bin
 
 # Read current configuration
-flashrom -p serprog:dev=/dev/ttyUSB0 -r current_config.bin
+flashrom -p serprog:dev=/dev/ttyACM0 -r current_config.bin
 
 # Erase flash
-flashrom -p serprog:dev=/dev/ttyUSB0 -E
+flashrom -p serprog:dev=/dev/ttyACM0 -E
 ```
 
 ---

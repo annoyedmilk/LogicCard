@@ -22,14 +22,14 @@
 #include <debug.h>
 #include "serprog.h"
 
-#define LED_PIN  3
-SBIT(LED, 0xb0, LED_PIN);
-#define CS_PIN  0
-SBIT(CS, 0x90, CS_PIN);
+#define LED_PIN  2
+SBIT(LED, 0xb0, LED_PIN);     // Port 3.2 - LED
+#define CS_PIN  4
+SBIT(CS, 0x90, CS_PIN);       // Port 1.4 - SPI_CS
 #define FPGA_RST_PIN  0
-SBIT(FPGA_RST, 0x90, FPGA_RST_PIN);
+SBIT(FPGA_RST, 0x90, FPGA_RST_PIN);  // Port 1.0 - FPGA_RST
 #define FPGA_EN_PIN  3
-SBIT(FPGA_EN, 0xb0, FPGA_EN_PIN);
+SBIT(FPGA_EN, 0xb0, FPGA_EN_PIN);    // Port 3.3 - FPGA_EN
 
 #define PGMNAME "ch552-serprog"
 #define CMD_MAP (\
@@ -39,11 +39,23 @@ SBIT(FPGA_EN, 0xb0, FPGA_EN_PIN);
     (1L << S_CMD_Q_PGMNAME)  | \
     (1L << S_CMD_Q_SERBUF)   | \
     (1L << S_CMD_Q_BUSTYPE)  | \
+    (1L << S_CMD_Q_CHIPSIZE) | \
+    (1L << S_CMD_Q_OPBUF)    | \
+    (1L << S_CMD_Q_WRNMAXLEN)| \
     (1L << S_CMD_SYNCNOP)    | \
+    (1L << S_CMD_Q_RDNMAXLEN)| \
     (1L << S_CMD_S_BUSTYPE)  | \
-    (1L << S_CMD_O_SPIOP)      \
+    (1L << S_CMD_O_SPIOP)    | \
+    (1L << S_CMD_S_PIN_STATE)  \
 )
 #define BUS_SPI (1 << 3)
+
+// Flash chip specifications for W25Q80DVSNIG
+// 1 Mbit = 128 KB = 2^17 bytes
+#define CHIP_SIZE 17          // log2(128*1024) = 17
+#define OPBUF_SIZE 64         // Operation buffer size in bytes
+#define MAX_WRITE_N 64        // Maximum write-N length
+#define MAX_READ_N 65535      // Maximum read-N length
 
 __xdata __at (0x0000) uint8_t  Ep0Buffer[DEFAULT_ENDP0_SIZE];      // Endpoint 0 OUT & IN buffer, must be an even address
 __xdata __at (0x0040) uint8_t  Ep1Buffer[DEFAULT_ENDP1_SIZE];       //Endpoint 1 upload buffer
@@ -648,6 +660,38 @@ void handle_command()
         usb_send_length = 2;
         break;
 
+    case S_CMD_Q_CHIPSIZE:
+        Ep2Buffer[64 + 0] = S_ACK;
+        Ep2Buffer[64 + 1] = (CHIP_SIZE >> 24) & 0xff;
+        Ep2Buffer[64 + 2] = (CHIP_SIZE >> 16) & 0xff;
+        Ep2Buffer[64 + 3] = (CHIP_SIZE >> 8) & 0xff;
+        Ep2Buffer[64 + 4] = CHIP_SIZE & 0xff;
+        usb_send_length = 5;
+        break;
+
+    case S_CMD_Q_OPBUF:
+        Ep2Buffer[64 + 0] = S_ACK;
+        Ep2Buffer[64 + 1] = (OPBUF_SIZE >> 8) & 0xff;
+        Ep2Buffer[64 + 2] = OPBUF_SIZE & 0xff;
+        usb_send_length = 3;
+        break;
+
+    case S_CMD_Q_WRNMAXLEN:
+        Ep2Buffer[64 + 0] = S_ACK;
+        Ep2Buffer[64 + 1] = (MAX_WRITE_N >> 16) & 0xff;
+        Ep2Buffer[64 + 2] = (MAX_WRITE_N >> 8) & 0xff;
+        Ep2Buffer[64 + 3] = MAX_WRITE_N & 0xff;
+        usb_send_length = 4;
+        break;
+
+    case S_CMD_Q_RDNMAXLEN:
+        Ep2Buffer[64 + 0] = S_ACK;
+        Ep2Buffer[64 + 1] = (MAX_READ_N >> 16) & 0xff;
+        Ep2Buffer[64 + 2] = (MAX_READ_N >> 8) & 0xff;
+        Ep2Buffer[64 + 3] = MAX_READ_N & 0xff;
+        usb_send_length = 4;
+        break;
+
     case S_CMD_SYNCNOP:
         Ep2Buffer[64 + 0] = S_NAK;
         Ep2Buffer[64 + 1] = S_ACK;
@@ -662,6 +706,26 @@ void handle_command()
         usb_send_length = 1;
         break;
 
+    case S_CMD_S_PIN_STATE:
+        // Pin state: 0 = Hi-Z (FPGA controls SPI), 1 = Driven (CH552 controls SPI)
+        i = recv_buf_getc();
+        if (i == 0) {
+            // Release SPI bus and enable FPGA
+            spi_bus_release();
+            mDelaymS(1);
+            fpga_enable();
+            LED = 1;  // Turn off LED
+        } else {
+            // Take control of SPI bus and hold FPGA in reset
+            fpga_reset();
+            mDelaymS(1);
+            spi_bus_take_control();
+            LED = 0;  // Turn on LED
+        }
+        Ep2Buffer[64 + 0] = S_ACK;
+        usb_send_length = 1;
+        break;
+
     case S_CMD_O_SPIOP:
         Ep2Buffer[64 + 0] = S_ACK;
         usb_send_length = 1;
@@ -671,12 +735,6 @@ void handle_command()
 
         slen = recv_buf_getc() | ((uint32_t)recv_buf_getc() << 8) | (((uint32_t)recv_buf_getc()) << 16);
         rlen = recv_buf_getc() | ((uint32_t)recv_buf_getc() << 8) | (((uint32_t)recv_buf_getc()) << 16);
-
-        // Reset FPGA and take control of SPI bus
-        fpga_reset();           // Hold FPGA in reset to prevent bus contention
-        mDelaymS(1);            // Wait for FPGA to enter reset state
-        spi_bus_take_control(); // Configure SPI pins as outputs
-        LED = 0;                // Turn on LED during flash operation (active low)
 
         CS = 0;
         if (slen > 0) {
@@ -722,12 +780,6 @@ void handle_command()
             while(UpPoint2_Busy);
         }
         CS = 1;
-
-        // Release SPI bus and enable FPGA
-        spi_bus_release();  // Set SPI pins to high-Z before enabling FPGA
-        mDelaymS(1);        // Wait for signals to stabilize
-        fpga_enable();      // Release FPGA from reset - it will now control SPI bus
-        LED = 1;            // Turn off LED after operation completes (active low)
         break;
 
     default:
@@ -756,6 +808,7 @@ void main()
     // Configure pin 3.2 as LED control
     P3_DIR_PU |= (1 << LED_PIN);
     P3_MOD_OC &= ~(1 << LED_PIN);
+    LED = 0;  // Turn on LED initially (active low)
 
     // Configure pin 3.3 as FPGA_EN control (output)
     P3_DIR_PU |= (1 << FPGA_EN_PIN);
@@ -793,6 +846,5 @@ void main()
     while(1)
     {
         handle_command();
-        LED = 1; // Turn off LED (active low)
     }
 }
