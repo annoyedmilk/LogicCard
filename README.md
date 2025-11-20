@@ -250,6 +250,7 @@ LogicCard/
 │       └── ch552-serprog.bin
 ├── examples/              # Example FPGA projects
 │   ├── blink/             # Simple LED blink example
+│   │   ├── blink.ffpga    # GoConfigure project file
 │   │   └── ffpga/         # FFPGA build artifacts
 │   │       ├── src/       # Verilog source files
 │   │       │   └── blink.v
