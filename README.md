@@ -215,19 +215,19 @@ flashrom -p serprog:dev=/dev/ttyACM0 -E
 The project includes two ready-to-use FPGA bitstreams:
 
 ### 6.1 Blink Example
-- **Location**: [examples/blink.ffpga](examples/blink.ffpga)
+- **Location**: [examples/blink/](examples/blink/)
 - **Description**: Simple LED blinking demo using Charlieplex configuration
 - **Features**: Single LED blinking at 2Hz using 2 GPIO pins
-- **Bitstream**: [examples/ffpga/build/bitstream/FPGA_bitstream_FLASH_MEM_1MB.bin](examples/ffpga/build/bitstream/FPGA_bitstream_FLASH_MEM_1MB.bin)
+- **Bitstream**: [examples/blink/ffpga/build/bitstream/FPGA_bitstream_FLASH_MEM_1MB.bin](examples/blink/ffpga/build/bitstream/FPGA_bitstream_FLASH_MEM_1MB.bin)
 
 ### 6.2 Demo Project
-- **Location**: [fpga/demo.ffpga](fpga/demo.ffpga)
+- **Location**: [examples/demo/demo.ffpga](examples/demo/demo.ffpga)
 - **Description**: Full 15×7 LED matrix with ripple effect animation
 - **Features**:
   - 105-LED Charlieplexed matrix (15 rows × 7 columns)
   - Button controls for pattern inversion, speed control, and pause/play
   - Uses all 11 Charlieplex GPIO pins
-- **Bitstream**: [fpga/ffpga/build/bitstream/FPGA_bitstream_FLASH_MEM_1MB.bin](fpga/ffpga/build/bitstream/FPGA_bitstream_FLASH_MEM_1MB.bin)
+- **Bitstream**: [examples/demo/ffpga/build/bitstream/FPGA_bitstream_FLASH_MEM_1MB.bin](examples/demo/ffpga/build/bitstream/FPGA_bitstream_FLASH_MEM_1MB.bin)
 
 ![LogicCard Demo Animation](docs/LogicCard.gif)
 
@@ -244,26 +244,28 @@ LogicCard/
 │   └── Render.png         # 3D render preview
 ├── firmware/              # CH552 firmware source code
 │   ├── ch552_serprog/     # serprog protocol implementation
+│   │   └── main.c         # Main firmware source
+│   ├── include/           # Shared header files
 │   └── build/             # Compiled firmware binaries
 │       └── ch552-serprog.bin
-├── fpga/                  # FPGA design files (Demo project)
-│   ├── demo.ffpga         # Demo FPGA project file
-│   └── ffpga/             # FFPGA build artifacts
-│       ├── src/           # Verilog source files
-│       │   └── demo.v     # LED matrix demo with ripple effect
-│       └── build/         # Build output directory
-│           └── bitstream/ # Generated bitstreams
-│               ├── FPGA_bitstream_FLASH_MEM.bin (48KB)
-│               └── FPGA_bitstream_FLASH_MEM_1MB.bin (1MB padded)
 ├── examples/              # Example FPGA projects
-│   ├── blink.ffpga        # Blink example project file
-│   └── ffpga/             # FFPGA build artifacts
-│       ├── src/           # Verilog source files
-│       │   └── blink.v    # Simple LED blink demo
-│       └── build/         # Build output directory
-│           └── bitstream/ # Generated bitstreams
-│               ├── FPGA_bitstream_FLASH_MEM.bin (48KB)
-│               └── FPGA_bitstream_FLASH_MEM_1MB.bin (1MB padded)
+│   ├── blink/             # Simple LED blink example
+│   │   └── ffpga/         # FFPGA build artifacts
+│   │       ├── src/       # Verilog source files
+│   │       │   └── blink.v
+│   │       └── build/     # Build output directory
+│   │           └── bitstream/
+│   │               ├── FPGA_bitstream_FLASH_MEM.bin (48KB)
+│   │               └── FPGA_bitstream_FLASH_MEM_1MB.bin (1MB padded)
+│   └── demo/              # LED matrix demo with ripple effect
+│       ├── demo.ffpga     # GoConfigure project file
+│       └── ffpga/         # FFPGA build artifacts
+│           ├── src/       # Verilog source files
+│           │   └── demo.v
+│           └── build/     # Build output directory
+│               └── bitstream/
+│                   ├── FPGA_bitstream_FLASH_MEM.bin (48KB)
+│                   └── FPGA_bitstream_FLASH_MEM_1MB.bin (1MB padded)
 └── docs/                  # Documentation and datasheets
     ├── CH552.PDF          # CH552 microcontroller datasheet
     ├── SLG47910.pdf       # SLG47910V FPGA datasheet
@@ -325,10 +327,10 @@ For more details on wchisp, see the [official repository](https://github.com/ch3
 2. Flash one of the ready-to-use examples:
    ```bash
    # Blink example
-   flashrom -p serprog:dev=/dev/ttyACM0 -w examples/ffpga/build/bitstream/FPGA_bitstream_FLASH_MEM_1MB.bin
+   flashrom -p serprog:dev=/dev/ttyACM0 -w examples/blink/ffpga/build/bitstream/FPGA_bitstream_FLASH_MEM_1MB.bin
 
    # Or the full LED matrix demo
-   flashrom -p serprog:dev=/dev/ttyACM0 -w fpga/ffpga/build/bitstream/FPGA_bitstream_FLASH_MEM_1MB.bin
+   flashrom -p serprog:dev=/dev/ttyACM0 -w examples/demo/ffpga/build/bitstream/FPGA_bitstream_FLASH_MEM_1MB.bin
    ```
 
 3. The FPGA automatically configures and runs after programming
@@ -386,13 +388,16 @@ This is an open-source hardware project. Contributions, suggestions, and feedbac
 - [CH552 Datasheet](https://www.wch-ic.com/downloads/CH552DS1_PDF.html) - USB MCU
 
 ### Software Tools
-- **GoConfigure**: Official Renesas FPGA development tool
-- **flashrom**: Open-source flash programmer
-- **SDCC**: Small Device C Compiler for CH552
+- [GoConfigure](https://www.renesas.com/en/software-tool/go-configure-software-hub): Official Renesas FPGA development tool
+- [flashrom](https://github.com/flashrom/flashrom): Open-source flash programmer
+- [SDCC](https://sdcc.sourceforge.net/): Small Device C Compiler for CH552
 
 ### Example Code
 - [ch552_serprog](https://github.com/ieiao/ch554_sdcc) - CH552 serprog implementation
 - [Charlieplexing Examples](https://en.wikipedia.org/wiki/Charlieplexing) - LED matrix control
+
+### Alternative Development Workflows
+- [LogicCard-VHDL](https://github.com/annoyedmilk/LogicCard-VHDL) - VHDL synthesis workflow using GHDL/Yosys for those who prefer VHDL over Verilog
 
 ---
 

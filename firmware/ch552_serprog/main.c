@@ -31,7 +31,7 @@ SBIT(FPGA_RST, 0x90, FPGA_RST_PIN);  // Port 1.0 - FPGA_RST
 #define FPGA_EN_PIN  3
 SBIT(FPGA_EN, 0xb0, FPGA_EN_PIN);    // Port 3.3 - FPGA_EN
 
-#define PGMNAME "ch552-serprog"
+#define PGMNAME "LogicCard"
 #define CMD_MAP (\
     (1L << S_CMD_NOP)        | \
     (1L << S_CMD_Q_IFACE)    | \
@@ -606,10 +606,39 @@ void handle_command()
 {
     uint32_t i = 0;
     uint8_t j = 0, k = 0;
-    uint8_t c = recv_buf_getc();
+    uint8_t c;
+    static uint8_t bus_controlled = 0;
+
+    c = recv_buf_getc();
 
     while(UpPoint2_Busy);
     LED = !LED;
+
+    // On first command received, take control of SPI bus and wake up flash
+    if (!bus_controlled) {
+        fpga_reset();
+        spi_bus_take_control();
+
+        // Wake flash from power-down with Release Power-Down command (0xAB)
+        CS = 0;
+        SPI0_DATA = 0xAB;
+        while(S0_FREE == 0);
+        j = SPI0_DATA;
+        // 3 dummy bytes
+        for (k = 0; k < 3; k++) {
+            SPI0_DATA = 0xFF;
+            while(S0_FREE == 0);
+            j = SPI0_DATA;
+        }
+        // Read device ID byte
+        SPI0_DATA = 0xFF;
+        while(S0_FREE == 0);
+        j = SPI0_DATA;
+        CS = 1;
+        mDelaymS(1);
+
+        bus_controlled = 1;
+    }
 
     switch(c) {
     case S_CMD_NOP:
@@ -808,7 +837,7 @@ void main()
     // Configure pin 3.2 as LED control
     P3_DIR_PU |= (1 << LED_PIN);
     P3_MOD_OC &= ~(1 << LED_PIN);
-    LED = 0;  // Turn on LED initially (active low)
+    LED = 1;  // Turn off LED initially (active low)
 
     // Configure pin 3.3 as FPGA_EN control (output)
     P3_DIR_PU |= (1 << FPGA_EN_PIN);
@@ -837,10 +866,7 @@ void main()
     UEP1_T_LEN = 0;                                                       //Pre-use send length must be cleared
     UEP2_T_LEN = 0;                                                       //Pre-use send length must be cleared
 
-    while(!UsbConfig) {
-        LED = !LED;
-        mDelaymS(50);
-    }
+    while(!UsbConfig);
     LED = 1; // Turn off LED when USB configured (active low)
     
     while(1)

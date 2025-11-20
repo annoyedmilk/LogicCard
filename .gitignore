@@ -4,10 +4,10 @@
 firmware/build/*
 !firmware/build/*.bin
 
-# FPGA build directory - ignore everything except bitstream files
-/fpga/ffpga/build/*
-!/fpga/ffpga/build/bitstream/
-/fpga/ffpga/build/bitstream/*
-!/fpga/ffpga/build/bitstream/*.bin
-!/fpga/ffpga/build/bitstream/*.txt
-/examples/ffpga/build
+# Examples FPGA build directories - ignore everything except flash bitstream files
+examples/*/ffpga/build/*
+!examples/*/ffpga/build/bitstream/
+examples/*/ffpga/build/bitstream/*
+!examples/*/ffpga/build/bitstream/FPGA_bitstream_FLASH_MEM.bin
+!examples/*/ffpga/build/bitstream/FPGA_bitstream_FLASH_MEM.txt
+!examples/*/ffpga/build/bitstream/FPGA_bitstream_FLASH_MEM_1MB.bin

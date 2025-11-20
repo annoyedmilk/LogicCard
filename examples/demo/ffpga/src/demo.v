@@ -6,8 +6,8 @@
 
 (* top *)
 module Demo #(
-    parameter IN_CLK_HZ   = 50_000_000,
-    parameter REFRESH_HZ  = 1000
+    parameter IN_CLK_HZ  = 50_000_000,
+    parameter REFRESH_HZ = 1_000
 ) (
     (* iopad_external_pin *)
     input nreset,
@@ -47,65 +47,65 @@ module Demo #(
     (* iopad_external_pin *) output CHARLIEPLEX_PIN_10
 );
 
-assign osc_en = 1'b1;
+    assign osc_en = 1'b1;
 
-// Bundle pins
-wire [10:0] oe_pins;
-wire [10:0] charlieplex_pins;
+    // Bundle pins
+    wire [10:0] oe_pins;
+    wire [10:0] charlieplex_pins;
 
-assign CHARLIEPLEX_OE_0  = oe_pins[0];
-assign CHARLIEPLEX_PIN_0 = charlieplex_pins[0];
-assign CHARLIEPLEX_OE_1  = oe_pins[1];
-assign CHARLIEPLEX_PIN_1 = charlieplex_pins[1];
-assign CHARLIEPLEX_OE_2  = oe_pins[2];
-assign CHARLIEPLEX_PIN_2 = charlieplex_pins[2];
-assign CHARLIEPLEX_OE_3  = oe_pins[3];
-assign CHARLIEPLEX_PIN_3 = charlieplex_pins[3];
-assign CHARLIEPLEX_OE_4  = oe_pins[4];
-assign CHARLIEPLEX_PIN_4 = charlieplex_pins[4];
-assign CHARLIEPLEX_OE_5  = oe_pins[5];
-assign CHARLIEPLEX_PIN_5 = charlieplex_pins[5];
-assign CHARLIEPLEX_OE_6  = oe_pins[6];
-assign CHARLIEPLEX_PIN_6 = charlieplex_pins[6];
-assign CHARLIEPLEX_OE_7  = oe_pins[7];
-assign CHARLIEPLEX_PIN_7 = charlieplex_pins[7];
-assign CHARLIEPLEX_OE_8  = oe_pins[8];
-assign CHARLIEPLEX_PIN_8 = charlieplex_pins[8];
-assign CHARLIEPLEX_OE_9  = oe_pins[9];
-assign CHARLIEPLEX_PIN_9 = charlieplex_pins[9];
-assign CHARLIEPLEX_OE_10 = oe_pins[10];
-assign CHARLIEPLEX_PIN_10 = charlieplex_pins[10];
+    assign CHARLIEPLEX_OE_0   = oe_pins[0];
+    assign CHARLIEPLEX_PIN_0  = charlieplex_pins[0];
+    assign CHARLIEPLEX_OE_1   = oe_pins[1];
+    assign CHARLIEPLEX_PIN_1  = charlieplex_pins[1];
+    assign CHARLIEPLEX_OE_2   = oe_pins[2];
+    assign CHARLIEPLEX_PIN_2  = charlieplex_pins[2];
+    assign CHARLIEPLEX_OE_3   = oe_pins[3];
+    assign CHARLIEPLEX_PIN_3  = charlieplex_pins[3];
+    assign CHARLIEPLEX_OE_4   = oe_pins[4];
+    assign CHARLIEPLEX_PIN_4  = charlieplex_pins[4];
+    assign CHARLIEPLEX_OE_5   = oe_pins[5];
+    assign CHARLIEPLEX_PIN_5  = charlieplex_pins[5];
+    assign CHARLIEPLEX_OE_6   = oe_pins[6];
+    assign CHARLIEPLEX_PIN_6  = charlieplex_pins[6];
+    assign CHARLIEPLEX_OE_7   = oe_pins[7];
+    assign CHARLIEPLEX_PIN_7  = charlieplex_pins[7];
+    assign CHARLIEPLEX_OE_8   = oe_pins[8];
+    assign CHARLIEPLEX_PIN_8  = charlieplex_pins[8];
+    assign CHARLIEPLEX_OE_9   = oe_pins[9];
+    assign CHARLIEPLEX_PIN_9  = charlieplex_pins[9];
+    assign CHARLIEPLEX_OE_10  = oe_pins[10];
+    assign CHARLIEPLEX_PIN_10 = charlieplex_pins[10];
 
-// Debounced button signals and edge detection
-wire btn1_db, btn2_db, btn3_db, btn4_db;
-wire btn1_press, btn2_press, btn3_press, btn4_press;
+    // Debounced button signals and edge detection
+    wire btn1_db, btn2_db, btn3_db, btn4_db;
+    wire btn1_press, btn2_press, btn3_press, btn4_press;
 
-// Debounce all buttons
-button_debounce #(.CLK_HZ(IN_CLK_HZ)) db1 (.clk(clk), .nreset(nreset), .btn_in(BTN1), .btn_out(btn1_db));
-button_debounce #(.CLK_HZ(IN_CLK_HZ)) db2 (.clk(clk), .nreset(nreset), .btn_in(BTN2), .btn_out(btn2_db));
-button_debounce #(.CLK_HZ(IN_CLK_HZ)) db3 (.clk(clk), .nreset(nreset), .btn_in(BTN3), .btn_out(btn3_db));
-button_debounce #(.CLK_HZ(IN_CLK_HZ)) db4 (.clk(clk), .nreset(nreset), .btn_in(BTN4), .btn_out(btn4_db));
+    // Debounce all buttons
+    button_debounce #(.CLK_HZ(IN_CLK_HZ)) db1 (.clk(clk), .nreset(nreset), .btn_in(BTN1), .btn_out(btn1_db));
+    button_debounce #(.CLK_HZ(IN_CLK_HZ)) db2 (.clk(clk), .nreset(nreset), .btn_in(BTN2), .btn_out(btn2_db));
+    button_debounce #(.CLK_HZ(IN_CLK_HZ)) db3 (.clk(clk), .nreset(nreset), .btn_in(BTN3), .btn_out(btn3_db));
+    button_debounce #(.CLK_HZ(IN_CLK_HZ)) db4 (.clk(clk), .nreset(nreset), .btn_in(BTN4), .btn_out(btn4_db));
 
-// Edge detection for button presses
-edge_detect ed1 (.clk(clk), .nreset(nreset), .signal(btn1_db), .edge_pulse(btn1_press));
-edge_detect ed2 (.clk(clk), .nreset(nreset), .signal(btn2_db), .edge_pulse(btn2_press));
-edge_detect ed3 (.clk(clk), .nreset(nreset), .signal(btn3_db), .edge_pulse(btn3_press));
-edge_detect ed4 (.clk(clk), .nreset(nreset), .signal(btn4_db), .edge_pulse(btn4_press));
+    // Edge detection for button presses
+    edge_detect ed1 (.clk(clk), .nreset(nreset), .signal(btn1_db), .edge_pulse(btn1_press));
+    edge_detect ed2 (.clk(clk), .nreset(nreset), .signal(btn2_db), .edge_pulse(btn2_press));
+    edge_detect ed3 (.clk(clk), .nreset(nreset), .signal(btn3_db), .edge_pulse(btn3_press));
+    edge_detect ed4 (.clk(clk), .nreset(nreset), .signal(btn4_db), .edge_pulse(btn4_press));
 
-// LED Scanner with button controls
-led_scanner #(
-    .IN_CLK_HZ(IN_CLK_HZ),
-    .REFRESH_HZ(REFRESH_HZ)
-) scanner (
-    .clk(clk),
-    .nreset(nreset),
-    .btn_invert(btn1_press),
-    .btn_speed_up(btn2_press),
-    .btn_speed_down(btn3_press),
-    .btn_pause(btn4_press),
-    .oe_pins(oe_pins),
-    .charlieplex_pins(charlieplex_pins)
-);
+    // LED Scanner with button controls
+    led_scanner #(
+        .IN_CLK_HZ(IN_CLK_HZ),
+        .REFRESH_HZ(REFRESH_HZ)
+    ) scanner (
+        .clk(clk),
+        .nreset(nreset),
+        .btn_invert(btn1_press),
+        .btn_speed_up(btn2_press),
+        .btn_speed_down(btn3_press),
+        .btn_pause(btn4_press),
+        .oe_pins(oe_pins),
+        .charlieplex_pins(charlieplex_pins)
+    );
 
 endmodule
 
@@ -122,8 +122,8 @@ module button_debounce #(
     output reg btn_out
 );
     localparam DEBOUNCE_MS = 20;
-    localparam COUNT_MAX = (CLK_HZ / 1000) * DEBOUNCE_MS;
-    localparam CNT_WIDTH = $clog2(COUNT_MAX + 1);
+    localparam CNT_MAX     = (CLK_HZ / 1_000) * DEBOUNCE_MS;
+    localparam CNT_WIDTH   = $clog2(CNT_MAX + 1);
 
     reg [CNT_WIDTH-1:0] counter;
     reg btn_sync_0, btn_sync_1;
@@ -132,8 +132,8 @@ module button_debounce #(
         if (!nreset) begin
             btn_sync_0 <= 0;
             btn_sync_1 <= 0;
-            btn_out <= 0;
-            counter <= 0;
+            btn_out    <= 0;
+            counter    <= 0;
         end else begin
             // Synchronizer
             btn_sync_0 <= btn_in;
@@ -144,7 +144,7 @@ module button_debounce #(
                 counter <= 0;
             end else begin
                 counter <= counter + 1;
-                if (counter >= COUNT_MAX) begin
+                if (counter >= CNT_MAX) begin
                     btn_out <= btn_sync_1;
                     counter <= 0;
                 end
@@ -168,10 +168,10 @@ module edge_detect (
     always @(posedge clk) begin
         if (!nreset) begin
             signal_delayed <= 0;
-            edge_pulse <= 0;
+            edge_pulse     <= 0;
         end else begin
             signal_delayed <= signal;
-            edge_pulse <= signal && !signal_delayed;
+            edge_pulse     <= signal && !signal_delayed;
         end
     end
 endmodule
@@ -192,7 +192,7 @@ module ripple_effect (
     localparam MAX_LED      = 104;
     localparam RIPPLE_WIDTH = 2;
 
-    reg [6:0] ripple_pos;
+    reg [6:0]  ripple_pos;
     reg [22:0] slowcnt;
 
     // Ripple position update
@@ -203,7 +203,7 @@ module ripple_effect (
         end else begin
             if (!paused) begin
                 if (slowcnt >= speed_divisor) begin
-                    slowcnt <= 0;
+                    slowcnt    <= 0;
                     ripple_pos <= (ripple_pos >= MAX_LED) ? 0 : ripple_pos + 1;
                 end else begin
                     slowcnt <= slowcnt + 1;
@@ -218,7 +218,7 @@ module ripple_effect (
         if (led_index >= (ripple_pos - RIPPLE_WIDTH))
             if (led_index <= (ripple_pos + RIPPLE_WIDTH))
                 led_on = 1'b1;
-        
+
         if (invert)
             led_on = ~led_on;
     end
@@ -229,8 +229,8 @@ endmodule
 //  LED Scanner
 // ================================================================
 module led_scanner #(
-    parameter IN_CLK_HZ = 50000000,
-    parameter REFRESH_HZ = 1000
+    parameter IN_CLK_HZ  = 50_000_000,
+    parameter REFRESH_HZ = 1_000
 )(
     input clk,
     input nreset,
@@ -242,10 +242,10 @@ module led_scanner #(
     output reg [10:0] charlieplex_pins
 );
 
-    localparam LED_COUNT = 105;
-    localparam LINE_SCAN_HZ = REFRESH_HZ * LED_COUNT;
-    localparam CNT_MAX = IN_CLK_HZ / LINE_SCAN_HZ - 1;
-    localparam CNT_WIDTH = $clog2(CNT_MAX + 1);
+    localparam LED_COUNT     = 105;
+    localparam LINE_SCAN_HZ  = REFRESH_HZ * LED_COUNT;
+    localparam CNT_MAX       = IN_CLK_HZ / LINE_SCAN_HZ - 1;
+    localparam CNT_WIDTH     = $clog2(CNT_MAX + 1);
 
     reg [CNT_WIDTH-1:0] counter;
     reg [6:0] led_index;
@@ -268,17 +268,17 @@ module led_scanner #(
         if (!nreset) begin
             invert_state <= 0;
             paused_state <= 0;
-            speed_level <= 1;  // Start at medium speed
+            speed_level  <= 1;  // Start at medium speed
         end else begin
             if (btn_invert)
                 invert_state <= ~invert_state;
-            
+
             if (btn_pause)
                 paused_state <= ~paused_state;
-            
+
             if (btn_speed_up && speed_level < 4)
                 speed_level <= speed_level + 1;
-            
+
             if (btn_speed_down && speed_level > 0)
                 speed_level <= speed_level - 1;
         end
@@ -311,21 +311,21 @@ module led_scanner #(
     // LED scanning
     always @(posedge clk) begin
         if (!nreset) begin
-            counter <= 0;
-            led_index <= 0;
-            oe_pins <= 0;
+            counter          <= 0;
+            led_index        <= 0;
+            oe_pins          <= 0;
             charlieplex_pins <= 0;
         end else begin
 
             if (counter >= CNT_MAX) begin
-                counter <= 0;
+                counter   <= 0;
                 led_index <= (led_index >= LED_COUNT-1) ? 0 : led_index + 1;
             end else begin
                 counter <= counter + 1;
             end
 
             // Default pins off
-            oe_pins <= 11'b0;
+            oe_pins          <= 11'b0;
             charlieplex_pins <= 11'b0;
 
             if (led_on) begin
