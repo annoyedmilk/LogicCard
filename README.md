@@ -35,15 +35,15 @@ The LogicCard is a compact and affordable FPGA development board featuring the R
 
 | Pin | Name | Description | Net |
 |-----|------|-------------|-----|
-| 1 | GPIO10 | General Purpose I/O | CHRLY_3 |
-| 2 | GPIO11 | General Purpose I/O | CHRLY_4 |
-| 3 | GPIO12 | General Purpose I/O | CHRLY_5 |
-| 4 | GPIO13 | General Purpose I/O | CHRLY_6 |
-| 5 | GPIO14 | General Purpose I/O | CHRLY_7 |
-| 6 | GPIO15 | General Purpose I/O | CHRLY_8 |
-| 7 | GPIO16 | General Purpose I/O | CHRLY_9 |
-| 8 | GPIO17 | General Purpose I/O | CHRLY_10 |
-| 9 | GPIO18 | General Purpose I/O | CHRLY_11 |
+| 1 | GPIO10 | General Purpose I/O | CHRLY_2 |
+| 2 | GPIO11 | General Purpose I/O | CHRLY_3 |
+| 3 | GPIO12 | General Purpose I/O | CHRLY_4 |
+| 4 | GPIO13 | General Purpose I/O | CHRLY_5 |
+| 5 | GPIO14 | General Purpose I/O | CHRLY_6 |
+| 6 | GPIO15 | General Purpose I/O | CHRLY_7 |
+| 7 | GPIO16 | General Purpose I/O | CHRLY_8 |
+| 8 | GPIO17 | General Purpose I/O | CHRLY_9 |
+| 9 | GPIO18 | General Purpose I/O | CHRLY_10 |
 | 10 | EN(nSLEEP) | Enable / Sleep (active low) | FPGA_EN |
 | 11 | PWR(nRST) | Power / Reset (active low) | FPGA_RST |
 | 12 | GND | Ground | GND |
@@ -57,8 +57,8 @@ The LogicCard is a compact and affordable FPGA development board featuring the R
 | 20 | GPIO7 | General Purpose I/O | BUTTON_4 |
 | 21 | VDDIO | I/O Supply Voltage | +3.3V |
 | 22 | VDDC | Core Supply Voltage | +1.1V |
-| 23 | GPIO8 | General Purpose I/O | CHRLY_1 |
-| 24 | GPIO9 | General Purpose I/O | CHRLY_2 |
+| 23 | GPIO8 | General Purpose I/O | CHRLY_0 |
+| 24 | GPIO9 | General Purpose I/O | CHRLY_1 |
 
 ### 2.2 CH552 Microcontroller Pinout
 
